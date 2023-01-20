@@ -1,4 +1,4 @@
-/** //<>//
+/**
    Robot CARY - ESE - ENSEA
    by Juan Yule.
 
@@ -41,15 +41,13 @@ boolean porte_close = true;
 int canetteDx, canettePosX, canetteDy, canettePosY;
 boolean flag_canette = false;
 
-PImage img;
+PImage img, canette_rouge, canette_vert, canette_gris;
+
 PImage robot_ouverte, robot_ouverte_vert, robot_ouverte_rouge, robot_ouverte_gris;
 PImage robot_ferme, robot_ferme_vert, robot_ferme_rouge, robot_ferme_gris;
 
 boolean flag_vert = false;
 boolean flag_rouge = false;
-
-boolean validation1 = false;
-boolean validation2 = false;
 
 void setup() {
   size(1000, 600);  // Stage size
@@ -129,14 +127,6 @@ void draw() {
   line(0, height / 2, width, height / 2);
   noStroke();
 
-  if(validation1 == true && validation2 == true)
-  {
-    ypos = robotY;
-    xpos = robotX;
-    validation1 = false;
-    validation2 = false;
-  }
-
   // Draw the shape ROBOT
   pushMatrix();
 
@@ -146,25 +136,25 @@ void draw() {
   //rectMode(CENTER);
   fill(255, 0, 0);
   //rect(-25, 0, 100, 100);
-  //if (flag_vert == true)
-  //{
-  //  opacity_vert = 255;
-  //  opacity_rouge = 0;
-  //  opacity = 0;
-  //}
-  //else if (flag_rouge == true)
-  //{
-  //  opacity_vert = 0;
-  //  opacity_rouge = 255;
-  //  opacity = 0;
-  //}
-  //else
-  //{
-  //  //l'option pour les canettes d'autres couleurs
-  //  opacity_vert = 0;
-  //  opacity_rouge = 0;
-  //  opacity = 255;
-  //}
+  if (flag_vert == true)
+  {
+    opacity_vert = 255;
+    opacity_rouge = 0;
+    opacity = 0;
+  }
+  else if (flag_rouge == true)
+  {
+    opacity_vert = 0;
+    opacity_rouge = 255;
+    opacity = 0;
+  }
+  else
+  {
+    //l'option pour les canettes d'autres couleurs
+    opacity_vert = 0;
+    opacity_rouge = 0;
+    opacity = 255;
+  }
 
   if (porte_open == true)
   {
@@ -225,6 +215,11 @@ public int valuesProcess(List<Integer> parameterList)
   Integer[] numbers = new Integer[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   List<Integer> intNumbers = new ArrayList<>(Arrays.asList(numbers));
 
+  if(parameterList.get(0) == 'x')
+  {
+    
+  }
+  
   for (int k = 1; k < 4; k++)
   {
     if (intNumbers.contains(parameterList.get(k) - 48))
@@ -281,90 +276,102 @@ void serialEvent(Serial myPort) {
     // Add the latest byte from the serial port to array:
     //serialInArray[serialCount] = inByte;
     dataRx.add(inByte);
-
+    
     serialCount++;
-
-    //Si, on a 4 bytes
-    if (serialCount > 3)
+    if (dataRx.get(serialCount-1) == 13)  //si le donnée est entrée
     {
-      serialCount = 0;
-      comp = dataRx.get(0);
-      if (comp == 'x')
+      if (dataRx.size() < 4)
       {
-        validation1 = true;
-        myPort.write('H'); //Position X de canette
-        robotX = valuesProcess(dataRx);
-        println(robotX);
-      }
-      else if (comp == 'y') //Position y de canette
-      {
-        validation2 = true;
-        myPort.write('H'); //imprime H = OK
-        robotY = valuesProcess(dataRx);
-        println(robotY);
-      }
-      else if (comp == 'g') // Angle de robot
-      {
-        myPort.write('H'); //imprime H = OK
-        robotD = valuesProcess(dataRx);
-        dpos = robotD;
-        println(robotD);
-      }
-      else if (comp == 'v') // Position X de canette
-      {
-        myPort.write('H'); //imprime H = OK
-        canetteDx = valuesProcess(dataRx);
-        canettePosX = canetteDx;
-        println(robotD);
-      }
-      else if (comp == 'b') // Position Y de canette
-      {
-        flag_canette = true;
-        myPort.write('H'); //imprime H = OK
-        canetteDy = valuesProcess(dataRx);
-        canettePosY = canetteDy;
-        println(robotD);
-      }
-      else if (comp == 'G') // Coleur vert
-      {
-        flag_vert = true;
-        flag_rouge = false;
-        flag_canette = false;
-        myPort.write('H'); //imprime H = OK
-        println("Green couleur good");
-        dataRx.clear();
-      }
-      else if (comp == 'R') // Coleur rouge
-      {
-        flag_rouge = true;
-        flag_vert = false;
-        flag_canette = false;
-        myPort.write('H'); //imprime H = OK
-        println("Red couleur good");
-        dataRx.clear();
-      }
-      else if (comp == 'o') // Commande porte ouverte
-      {
-        porte_open =  true;
-        porte_close = false;
-        myPort.write('H'); //imprime H = OK
-        println("Porte ouverte");
-        dataRx.clear();
-      }
-      else if (comp == 'c') // Commande porte ferme
-      {
-        porte_open =  false;
-        porte_close = true;
-        myPort.write('H'); //imprime H = OK
-        println("porte close");
-        dataRx.clear();
+        println("erreur dans la Rx des données");
       }
       else
       {
-        dataRx.clear();
-        println("erreur dans la reception\n\r");
-        myPort.write("Erreur données\n\r");
+        
       }
+      println(dataRx.size()-1);
+      println("Value %d", dataRx.get(serialCount-1));
     }
+    //Si, on a 4 bytes
+    //if (serialCount > 3)
+    //{
+    //  serialCount = 0;
+    //  comp = dataRx.get(0);
+    //  if (comp == 'x')
+    //  {
+    //    myPort.write('H'); //Position X de canette
+    //    robotX = valuesProcess(dataRx);
+    //    xpos = robotX;
+    //    println(robotX);
+    //  }
+    //  else if (comp == 'y') //Position y de canette
+    //  {
+    //    myPort.write('H'); //imprime H = OK
+    //    robotY = valuesProcess(dataRx);
+    //    ypos = robotY;
+    //    println(robotY);
+    //  }
+    //  else if (comp == 'g') // Angle de robot
+    //  {
+    //    myPort.write('H'); //imprime H = OK
+    //    robotD = valuesProcess(dataRx);
+    //    dpos = robotD;
+    //    println(robotD);
+    //  }
+    //  else if (comp == 'v') // Position X de canette
+    //  {
+    //    myPort.write('H'); //imprime H = OK
+    //    canetteDx = valuesProcess(dataRx);
+    //    canettePosX = canetteDx;
+    //    println(robotD);
+    //  }
+    //  else if (comp == 'b') // Position Y de canette
+    //  {
+    //    flag_canette = true;
+    //    myPort.write('H'); //imprime H = OK
+    //    canetteDy = valuesProcess(dataRx);
+    //    canettePosY = canetteDy;
+    //    println(robotD);
+    //  }
+    //  else if (comp == 'G') // Coleur vert
+    //  {
+    //    flag_vert = true;
+    //    flag_rouge = false;
+    //    flag_canette = false;
+    //    myPort.write('H'); //imprime H = OK
+    //    println("Green couleur good");
+    //    dataRx.clear();
+    //  }
+    //  else if (comp == 'R') // Coleur rouge
+    //  {
+    //    flag_rouge = true;
+    //    flag_vert = false;
+    //    flag_canette = false;
+    //    myPort.write('H'); //imprime H = OK
+    //    println("Red couleur good");
+    //    dataRx.clear();
+    //  }
+    //  else if (comp == 'o') // Commande porte ouverte
+    //  {
+    //    porte_open =  true;
+    //    porte_close = false;
+    //    myPort.write('H'); //imprime H = OK
+    //    println("Porte ouverte");
+    //    dataRx.clear();
+    //  }
+    //  else if (comp == 'c') // Commande porte ferme
+    //  {
+    //    porte_open =  false;
+    //    porte_close = true;
+    //    myPort.write('H'); //imprime H = OK
+    //    println("porte close");
+    //    dataRx.clear();
+    //  }
+    //  else
+    //  {
+    //    dataRx.clear();
+    //    println("erreur dans la reception\n\r");
+    //    myPort.write("Erreur données\n\r");
+    //  }
+    //}
   }
 }
