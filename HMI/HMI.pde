@@ -28,6 +28,8 @@ int comp;
 int robotX, robotY, robotD;
 List<Integer> dataRx = new ArrayList<Integer>();
 
+List<Integer> dataManito = new ArrayList<Integer>();
+
 int width_robot, height_robot;
 int opacity = 255;  //opacity of the image
 int opacity_vert = 0;
@@ -52,6 +54,8 @@ boolean flag_rouge = false;
 
 boolean validation1 = false;
 boolean validation2 = false;
+
+boolean flag_end = false;
 
 void setup() {
   size(1000, 600);  // Stage size
@@ -100,19 +104,20 @@ void setup() {
 void draw() {
   background(255, 255, 255);
 
-  //Zone vert
-  fill(0, 255, 0);
+//Zone rouge
+  fill(255, 0, 0);
   stroke(0);
   rectMode(CENTER);
   rect(0, height, 400, 600);
   noStroke();
 
-  //Zone rouge
-  fill(255, 0, 0);
+    //Zone vert
+  fill(0, 255, 0);
   stroke(0);
   rectMode(CENTER);
   rect(0, 0, 400, 600);
   noStroke();
+
   
   //=====Text position du robot======
   String str_pos_x = "x: " + str(xpos);
@@ -149,26 +154,19 @@ void draw() {
   rotate(radians(dpos));
   //rectMode(CENTER);
   fill(255, 0, 0);
-  //rect(-25, 0, 100, 100);
-  //if (flag_vert == true)
-  //{
-  //  opacity_vert = 255;
-  //  opacity_rouge = 0;
-  //  opacity = 0;
-  //}
-  //else if (flag_rouge == true)
-  //{
-  //  opacity_vert = 0;
-  //  opacity_rouge = 255;
-  //  opacity = 0;
-  //}
-  //else
-  //{
-  //  //l'option pour les canettes d'autres couleurs
-  //  opacity_vert = 0;
-  //  opacity_rouge = 0;
-  //  opacity = 255;
-  //}
+  
+  if(xpos < 200)
+  {
+    if(ypos > 300)
+    {
+      flag_rouge = false;
+    }
+    else
+    {
+      flag_vert = false;
+    }
+  }
+
 
   if (porte_open == true)
   {
@@ -199,7 +197,6 @@ void draw() {
     {
       image(robot_ferme, -width_robot / 2, -height_robot / 5, width_robot, height_robot);
     }
-   
     //tint(255, opacity);
     //image(robot_ouverte, -width_robot / 2, -height_robot / 5, width_robot, height_robot);
     //tint(255, opacity_rouge);
@@ -223,31 +220,34 @@ public int valuesProcess(List<Integer> parameterList)
   int val_1 = 0;
   int val_2 = 0;
   int val_3 = 0;
+  int val_4 = 0;
+  
   int end_value = 0;
   boolean flag = false;
 
   Integer[] numbers = new Integer[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   List<Integer> intNumbers = new ArrayList<>(Arrays.asList(numbers));
 
-  for (int k = 1; k < 4; k++)
+  for (int k = 1; k < 5; k++)
   {
     if (intNumbers.contains(parameterList.get(k) - 48))
     {
-      println("OK");
+      //println("OK");
     }
     else
     {
       flag = true;
-      println("Erreur les valeurs ne sont pas chiffres");
+      //println("Erreur les valeurs ne sont pas chiffres");
       break;
     }
   }
   if (flag == false)
   {
-    val_1 = (parameterList.get(1) - 48) * 100;
-    val_2 = (parameterList.get(2) - 48) * 10;
-    val_3 = (parameterList.get(3) - 48) * 1;
-    end_value = val_1 + val_2 + val_3;
+    val_1 = (parameterList.get(1) - 48) * 1000;
+    val_2 = (parameterList.get(2) - 48) * 100;
+    val_3 = (parameterList.get(3) - 48) * 10;
+    val_4 = (parameterList.get(4) - 48) * 1;
+    end_value = val_1 + val_2 + val_3 + val_4;
   }
   else if (flag == true)
   {
@@ -282,51 +282,76 @@ void serialEvent(Serial myPort) {
   else {
     // Add the latest byte from the serial port to array:
     //serialInArray[serialCount] = inByte;
-    dataRx.add(inByte);
-
-    serialCount++;
-    println("%c", dataRx.get(serialCount-1));
+    if(inByte != 0){
+      dataRx.add(inByte);
+      serialCount++;
+    }
+    if(inByte == 'p')
+    {
+      //
+      flag_end = true;
+      dataManito.add(dataRx.get(serialCount-6));
+      dataManito.add(dataRx.get(serialCount-5));
+      dataManito.add(dataRx.get(serialCount-4));
+      dataManito.add(dataRx.get(serialCount-3));
+      dataManito.add(dataRx.get(serialCount-2));
+      println(dataManito);
+    }
+    //println("%c", dataRx.get(serialCount-1));
 
     //Si, on a 4 bytes
-    if (serialCount > 5)
+    
+    if (flag_end == true)
     {
+      flag_end = false;
+     // println(dataRx);
       serialCount = 0;
-      comp = dataRx.get(0);
+      comp = dataManito.get(0);
       if (comp == 'x')
       {
         validation1 = true;
         myPort.write('H'); //Position X de canette
-        robotX = valuesProcess(dataRx);
-        println(robotX);
+        robotX = valuesProcess(dataManito);
+        dataManito.clear();
+        dataRx.clear();
+        //println(robotX);
       }
       else if (comp == 'y') //Position y de canette
       {
         validation2 = true;
         myPort.write('H'); //imprime H = OK
-        robotY = valuesProcess(dataRx);
-        println(robotY);
+        robotY = valuesProcess(dataManito);
+        dataManito.clear();
+        dataRx.clear();
+        //println(robotY);
       }
       else if (comp == 'g') // Angle de robot
       {
         myPort.write('H'); //imprime H = OK
-        robotD = valuesProcess(dataRx);
+        robotD = valuesProcess(dataManito);
         dpos = robotD;
-        println(robotD);
+        dataManito.clear();
+        dataRx.clear();
+        
+        //println(robotD);
       }
       else if (comp == 'v') // Position X de canette
       {
         myPort.write('H'); //imprime H = OK
-        canetteDx = valuesProcess(dataRx);
+        canetteDx = valuesProcess(dataManito);
         canettePosX = canetteDx;
-        println(robotD);
+        dataManito.clear();
+        dataRx.clear();
+        //println(robotD);
       }
       else if (comp == 'b') // Position Y de canette
       {
         flag_canette = true;
         myPort.write('H'); //imprime H = OK
-        canetteDy = valuesProcess(dataRx);
+        canetteDy = valuesProcess(dataManito);
         canettePosY = canetteDy;
-        println(robotD);
+        dataRx.clear();
+        //println(robotD);
       }
       else if (comp == 'G') // Coleur vert
       {
@@ -335,6 +360,7 @@ void serialEvent(Serial myPort) {
         flag_canette = false;
         myPort.write('H'); //imprime H = OK
         println("Green couleur good");
+        dataManito.clear();
         dataRx.clear();
       }
       else if (comp == 'R') // Coleur rouge
@@ -344,6 +370,7 @@ void serialEvent(Serial myPort) {
         flag_canette = false;
         myPort.write('H'); //imprime H = OK
         println("Red couleur good");
+        dataManito.clear();
         dataRx.clear();
       }
       else if (comp == 'o') // Commande porte ouverte
@@ -352,6 +379,7 @@ void serialEvent(Serial myPort) {
         porte_close = false;
         myPort.write('H'); //imprime H = OK
         println("Porte ouverte");
+        dataManito.clear();
         dataRx.clear();
       }
       else if (comp == 'c') // Commande porte ferme
@@ -360,22 +388,27 @@ void serialEvent(Serial myPort) {
         porte_close = true;
         myPort.write('H'); //imprime H = OK
         println("porte close");
+        dataManito.clear();
         dataRx.clear();
       }
       else if (comp == 'J') // Commande porte ferme
       {
         myPort.write('H'); //imprime H = OK
         println("porte close");
+        dataManito.clear();
         dataRx.clear();
       }
       else if (comp == 'K') // Commande porte ferme
       {
         myPort.write('H'); //imprime H = OK
         println("porte close");
+        dataManito.clear();
         dataRx.clear();
       }
       else
       {
+        println(dataManito);
+        dataManito.clear();
         dataRx.clear();
         println("erreur dans la reception\n\r");
         myPort.write("Erreur données\n\r");

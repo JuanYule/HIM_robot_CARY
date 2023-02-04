@@ -87,7 +87,7 @@ void setup() {
   //println(robot_ouverte.height);
   //=====================//
   
-  String portName = "/dev/ttyUSB1";
+  String portName = "/dev/tnt0";
   myPort = new Serial(this, portName, 115200);
 }
 
@@ -282,7 +282,7 @@ void serialEvent(Serial myPort) {
     
     serialCount++;
     println("Value %c", dataRx.get(serialCount-1));
-    if (dataRx.get(serialCount-1) == 13)  //si le donnée est entrée
+    if (dataRx.get(serialCount-1) == 13 || dataRx.get(serialCount-2) == 13)  //si le donnée est entrée
     {
       if (dataRx.size() < 4)
       {
