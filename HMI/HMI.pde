@@ -19,7 +19,6 @@ import java.util.*;
 import processing.serial.*;
 
 Serial myPort;                       // The serial port
-int[] serialInArray = new int[3];    // Where we'll put what we receive
 
 int serialCount = 0;                 // A count of how many bytes we receive
 int xpos, ypos, dpos;                // Starting position of the ball
@@ -34,6 +33,9 @@ int opacity = 255;  //opacity of the image
 int opacity_vert = 0;
 int opacity_rouge = 0;
 int div_taille = 17;
+
+int canette_rouge = 0;  //variables pour compter les canettes
+int canette_vert = 0;
 
 boolean porte_open = false;
 boolean porte_close = true;
@@ -60,9 +62,9 @@ void setup() {
   noStroke();      // No border on the next thing drawn
 
   // Set the starting position of the ball (middle of the stage)
-  xpos = width / 2;
+  xpos = width / 5;
   ypos = height / 2;
-  dpos = 0;
+  dpos = 270;
   //load images
   img = loadImage("robot.png");
 
@@ -91,7 +93,7 @@ void setup() {
 
   // I know that the first port in the serial list on my PC
   // is always my  /dev/tty* , so I open Serial.list()[0].
-  String portName = "/dev/tnt0";
+  String portName = "/dev/ttyUSB0";
   myPort = new Serial(this, portName, 115200);
 }
 
@@ -102,14 +104,14 @@ void draw() {
   fill(0, 255, 0);
   stroke(0);
   rectMode(CENTER);
-  rect(0, height / 2, 200, 600);
+  rect(0, height, 400, 600);
   noStroke();
 
   //Zone rouge
   fill(255, 0, 0);
   stroke(0);
   rectMode(CENTER);
-  rect(width, height / 2, 200, 600);
+  rect(0, 0, 400, 600);
   noStroke();
   
   //=====Text position du robot======
@@ -119,9 +121,11 @@ void draw() {
   
   textSize(20);
   fill(0);
-  text(str_pos_x, 10, 20);  
-  text(str_pos_y, 10, 40);
-  text(str_angle, 10, 60);
+  text(str_pos_x, 900, 20);  
+  text(str_pos_y, 900, 40);
+  text(str_angle, 900, 60);
+  //================================
+  
   //================================
   //Line axes
   stroke(0);
@@ -269,13 +273,11 @@ void serialEvent(Serial myPort) {
   // clear the serial buffer and note that you've
   // had first contact from the microcontroller.
   // Otherwise, add the incoming byte to the array:
-  if (firstContact == false) {
-    if (inByte == 'A') {
-      myPort.clear();          // clear the serial port buffer
-      firstContact = true;     // you've had first contact from the microcontroller
-      myPort.write('A');       // ask for more
-      dataRx.clear();
-    }
+  if (firstContact == true) {
+    myPort.clear();          // clear the serial port buffer
+    firstContact = true;     // you've had first contact from the microcontroller
+    myPort.write('A');       // ask for more
+    dataRx.clear();
   }
   else {
     // Add the latest byte from the serial port to array:
@@ -283,9 +285,10 @@ void serialEvent(Serial myPort) {
     dataRx.add(inByte);
 
     serialCount++;
+    println("%c", dataRx.get(serialCount-1));
 
     //Si, on a 4 bytes
-    if (serialCount > 3)
+    if (serialCount > 5)
     {
       serialCount = 0;
       comp = dataRx.get(0);
@@ -355,6 +358,18 @@ void serialEvent(Serial myPort) {
       {
         porte_open =  false;
         porte_close = true;
+        myPort.write('H'); //imprime H = OK
+        println("porte close");
+        dataRx.clear();
+      }
+      else if (comp == 'J') // Commande porte ferme
+      {
+        myPort.write('H'); //imprime H = OK
+        println("porte close");
+        dataRx.clear();
+      }
+      else if (comp == 'K') // Commande porte ferme
+      {
         myPort.write('H'); //imprime H = OK
         println("porte close");
         dataRx.clear();

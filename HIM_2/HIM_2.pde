@@ -86,10 +86,8 @@ void setup() {
   //println(robot_ouverte.width);
   //println(robot_ouverte.height);
   //=====================//
-
-  // I know that the first port in the serial list on my PC
-  // is always my  /dev/tty* , so I open Serial.list()[0].
-  String portName = "/dev/tnt0";
+  
+  String portName = "/dev/ttyUSB1";
   myPort = new Serial(this, portName, 115200);
 }
 
@@ -264,20 +262,26 @@ void serialEvent(Serial myPort) {
   // clear the serial buffer and note that you've
   // had first contact from the microcontroller.
   // Otherwise, add the incoming byte to the array:
-  if (firstContact == false) {
-    if (inByte == 'A') {
+  if (firstContact == true) {
       myPort.clear();          // clear the serial port buffer
       firstContact = true;     // you've had first contact from the microcontroller
       myPort.write('A');       // ask for more
       dataRx.clear();
-    }
+    //if (inByte == 'A') {
+    //  myPort.clear();          // clear the serial port buffer
+    //  firstContact = true;     // you've had first contact from the microcontroller
+    //  myPort.write('A');       // ask for more
+    //  dataRx.clear();
+    //}
   }
   else {
     // Add the latest byte from the serial port to array:
     //serialInArray[serialCount] = inByte;
+    
     dataRx.add(inByte);
     
     serialCount++;
+    println("Value %c", dataRx.get(serialCount-1));
     if (dataRx.get(serialCount-1) == 13)  //si le donnée est entrée
     {
       if (dataRx.size() < 4)
