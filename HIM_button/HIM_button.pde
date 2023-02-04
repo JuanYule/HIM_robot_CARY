@@ -1,4 +1,4 @@
-/** //<>//
+/**
    Robot CARY - ESE - ENSEA
    by Juan Yule.
 
